@@ -10,8 +10,18 @@ import java.util.Set;
  */
 public class StateMachine {
 
+    /**
+     * Начальное состояние
+     */
     private final int startState;
+    /**
+     * Множество конечных состояний
+     */
     private final Set<Integer> endStates;
+    /**
+     * Хранение таблицы переходов для конечного автомата:
+     * исходное состояние -> (входной символ -> состояние, в которое КА переходит)
+     */
     private final Map<Integer, Map<Character, Integer>> transitions = new HashMap<>();
 
     /**
@@ -23,17 +33,39 @@ public class StateMachine {
         this.endStates = endStates;
     }
 
+    /**
+     * Добавление возможного перехода в таблицу переходов.
+     *
+     * @param from исходное состояние
+     * @param ch входной символ
+     * @param to состояние, в которое КА переходит
+     */
     public void add(Integer from, Character ch, Integer to) {
         Map<Character, Integer> fromMap = transitions.computeIfAbsent(from, k -> new HashMap<>());
         fromMap.put(ch, to);
     }
 
+    /**
+     * Добавление нескольких возможных переходов в таблицу переходов.
+     *
+     * @param from исходное состояние
+     * @param chars входные символы
+     * @param to состояние, в которое КА переходит
+     */
     public void add(Integer from, List<Character> chars, Integer to) {
         for (Character ch : chars) {
             add(from, ch.charValue(), to);
         }
     }
 
+    /**
+     * Получение следующего состояния по текущему состоянию и входному символу.
+     *
+     * @param state текущее состояние
+     * @param ch входной символ
+     * @return новое состояние (null, если в таблице нет переходов, т.е. сопоставление с регулярным выражением
+     * не может быть осуществлено для такого входного символа)
+     */
     public Integer getNext(Integer state, Character ch) {
         Map<Character, Integer> stateTransitions = transitions.get(state);
         return stateTransitions.get(ch);
@@ -67,7 +99,7 @@ public class StateMachine {
     }
 
     /**
-     * Поиск всех сопоставлений в строке
+     * Поиск и печать всех сопоставлений в строке.
      */
     public void findAll(String str) {
         int i = 0;
