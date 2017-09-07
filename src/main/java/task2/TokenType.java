@@ -27,5 +27,13 @@ public enum TokenType {
     /**
      * Символ '/'
      */
-    DIVIDE
+    DIVIDE,
+    /**
+     * Символ '('
+     */
+    LEFT_PARENS,
+    /**
+     * Символ ')'
+     */
+    RIGHT_PARENS
 }

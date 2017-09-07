@@ -76,7 +76,7 @@ public class Lexer {
      */
     private Token matchSymbol() {
         // Сопоставляем текст, начиная с текущей позиции, с регулярным выражением:
-        int end = match(Pattern.compile("[+\\-*/]"));
+        int end = match(Pattern.compile("[+\\-*/()]"));
         if (end < 0) {
             // Не удалось сопоставить
             return null;
@@ -96,6 +96,12 @@ public class Lexer {
             break;
         case "/":
             type = TokenType.DIVIDE;
+            break;
+        case "(":
+            type = TokenType.LEFT_PARENS;
+            break;
+        case ")":
+            type = TokenType.RIGHT_PARENS;
             break;
         default:
             // Такого не может быть:
