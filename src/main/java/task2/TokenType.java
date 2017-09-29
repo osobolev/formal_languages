@@ -7,33 +7,33 @@ public enum TokenType {
     /**
      * Пробелы
      */
-    WHITESPACE,
+    SPACES,
     /**
      * Целое число
      */
-    INT,
+    NUMBER,
     /**
      * Символ '+'
      */
-    PLUS,
+    ADD,
     /**
      * Символ '-'
      */
-    MINUS,
+    SUB,
     /**
      * Символ '*'
      */
-    MULTIPLY,
+    MUL,
     /**
      * Символ '/'
      */
-    DIVIDE,
+    DIV,
     /**
      * Символ '('
      */
-    LEFT_PARENS,
+    LPAR,
     /**
      * Символ ')'
      */
-    RIGHT_PARENS
+    RPAR
 }

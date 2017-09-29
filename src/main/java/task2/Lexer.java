@@ -1,5 +1,7 @@
 package task2;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,11 +24,14 @@ public class Lexer {
     }
 
     /**
-     * Попытка сопоставить текст, начиная с текущей позиции index, с регулярным выражением.
+     * Попытка сопоставить текст, начиная с текущей позиции index, с
+     * регулярным выражением.
      *
      * @param pattern регулярное выражение
-     * @return -1, если если регулярное выражение не удалось найти в текущей позиции;
-     * значение >= 0 - индекс первого символа, следующего после найденной лексемы, соответствующей регулярному выражению
+     * @return -1, если если регулярное выражение не удалось найти в
+     * текущей позиции; значение >= 0 - индекс первого символа,
+     * следующего после найденной лексемы, соответствующей
+     * регулярному выражению
      */
     private int match(Pattern pattern) {
         Matcher matcher = pattern.matcher(str);
@@ -41,94 +46,53 @@ public class Lexer {
         }
     }
 
-    /**
-     * Попытка найти следующую лексему, начиная с текущей позиции index.
-     *
-     * @param type тип лексемы
-     * @param pattern регулярное выражение, описывающее лексему
-     * @return null, если регулярное выражение не удалось найти в текущей позиции;
-     * иначе лексему, соответствующую регулярному выражению
-     */
-    private Token matchToken(TokenType type, Pattern pattern) {
-        // Сопоставляем текст, начиная с текущей позиции, с регулярным выражением:
-        int end = match(pattern);
-        if (end < 0) {
-            // Не удалось сопоставить
+    private Token matchNumber() {
+        Pattern numberPattern = Pattern.compile("[0-9]+");
+        int matched = match(numberPattern);
+        if (matched < 0)
             return null;
-        }
-        // Удалось сопоставить, конец текста лексемы - в переменной end:
-        return new Token(type, str.substring(index, end), index, end);
+        String numberText = str.substring(index, matched);
+        return new Token(TokenType.NUMBER, numberText, index, matched);
     }
 
-    /**
-     * Попытка найти целое число в текущей позиции. Целое число описывается регулярным выражением \d+.
-     *
-     * @return null, если в текущей позиции нет целого числа
-     */
-    private Token matchInt() {
-        return matchToken(TokenType.INT, Pattern.compile("\\d+"));
+    private final Map<String, TokenType> SYMBOL_MAP = new HashMap<>();
+
+    {
+        SYMBOL_MAP.put("+", TokenType.ADD);
+        SYMBOL_MAP.put("-", TokenType.SUB);
+        SYMBOL_MAP.put("*", TokenType.MUL);
+        SYMBOL_MAP.put("/", TokenType.DIV);
+        SYMBOL_MAP.put("(", TokenType.LPAR);
+        SYMBOL_MAP.put(")", TokenType.RPAR);
     }
 
-    /**
-     * Попытка найти символ операции в текущей позиции.
-     *
-     * @return null, если в текущей позиции нет символа операции
-     */
-    private Token matchSymbol() {
-        // Сопоставляем текст, начиная с текущей позиции, с регулярным выражением:
-        int end = match(Pattern.compile("[+\\-*/()]"));
-        if (end < 0) {
-            // Не удалось сопоставить
-            return null;
+    private Token matchAnySymbol() {
+        for (Map.Entry<String, TokenType> entry : SYMBOL_MAP.entrySet()) {
+            String key = entry.getKey();
+            TokenType value = entry.getValue();
+            Pattern symbolPattern = Pattern.compile(Pattern.quote(key));
+            int matched = match(symbolPattern);
+            if (matched < 0)
+                continue;
+            String symbolText = str.substring(index, matched);
+            return new Token(value, symbolText, index, matched);
         }
-        // Сопоставленный текст:
-        String op = str.substring(index, end);
-        TokenType type;
-        switch (op) {
-        case "+":
-            type = TokenType.PLUS;
-            break;
-        case "-":
-            type = TokenType.MINUS;
-            break;
-        case "*":
-            type = TokenType.MULTIPLY;
-            break;
-        case "/":
-            type = TokenType.DIVIDE;
-            break;
-        case "(":
-            type = TokenType.LEFT_PARENS;
-            break;
-        case ")":
-            type = TokenType.RIGHT_PARENS;
-            break;
-        default:
-            // Такого не может быть:
-            throw new IllegalStateException();
-        }
-        return new Token(type, op, index, end);
+        return null;
     }
 
-    /**
-     * Пропуск всех пробельных символов во входной строке, начиная с текущей позиции.
-     * После вызова этого метода текущая позиция стоит либо в конце строки, либо на непробельном символе.
-     *
-     * @return лексема, содержащая пробельные символы, либо null, если пробелов в текущей позиции не было.
-     * Обычно пробельные лексемы не используются, но могут использоваться некоторыми инструментами, для которых
-     * наличие пробелов существенно, например утилитами форматирования кода.
-     */
     private Token matchSpaces() {
         int i = index;
         while (i < str.length()) {
             char ch = str.charAt(i);
-            if (!Character.isWhitespace(ch))
+            if (ch <= ' ') {
+                i++;
+            } else {
                 break;
-            i++;
+            }
         }
         if (i > index) {
             String spaces = str.substring(index, i);
-            return new Token(TokenType.WHITESPACE, spaces, index, i);
+            return new Token(TokenType.SPACES, spaces, index, i);
         } else {
             return null;
         }
@@ -147,14 +111,16 @@ public class Lexer {
         Token spacesToken = matchSpaces();
         if (spacesToken != null)
             return spacesToken;
-        Token intToken = matchInt();
-        if (intToken != null)
-            return intToken;
-        Token symbolToken = matchSymbol();
+        Token numberToken = matchNumber();
+        if (numberToken != null)
+            return numberToken;
+        Token symbolToken = matchAnySymbol();
         if (symbolToken != null)
             return symbolToken;
         // Символ в текущей позиции не подходит ни к одной из возможных лексем - ошибка:
-        throw new ParseException("Unexpected character '" + str.charAt(index) + "'", index);
+        throw new ParseException(
+            "Unexpected character '" + str.charAt(index) + "'", index
+        );
     }
 
     /**
@@ -171,12 +137,10 @@ public class Lexer {
             }
             // Перемещаем текущую позицию после найденной лексемы:
             index = token.to;
-            if (token.type == TokenType.WHITESPACE) {
-                // Пропускаем пробельные лексемы - в данном случае они нам неинтересны:
-                continue;
+            if (token.type != TokenType.SPACES) {
+                // Непробельную лексему возвращаем:
+                return token;
             }
-            // Непробельную лексему возвращаем:
-            return token;
         }
     }
 }
