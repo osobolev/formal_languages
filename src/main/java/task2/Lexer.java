@@ -1,6 +1,8 @@
 package task2;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -142,5 +144,16 @@ public class Lexer {
                 return token;
             }
         }
+    }
+
+    public List<Token> getAllTokens() throws ParseException {
+        List<Token> allTokens = new ArrayList<>();
+        while (true) {
+            Token token = nextToken();
+            if (token == null)
+                break;
+            allTokens.add(token);
+        }
+        return allTokens;
     }
 }
