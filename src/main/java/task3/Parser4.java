@@ -139,6 +139,21 @@ public class Parser4 {
         return leftNode;
     }
 
+    private static double eval(ExprNode1 expr) {
+        if (expr.isNumber) {
+            String text = expr.number.text;
+            return Double.parseDouble(text);
+        } else {
+            double leftValue = eval(expr.left);
+            double rightValue = eval(expr.right);
+            switch (expr.op.type) {
+            case ADD: return leftValue + rightValue;
+            case SUB: return leftValue - rightValue;
+            }
+            throw new IllegalStateException();
+        }
+    }
+
     /**
      * Проверка грамматического разбора выражения
      */
@@ -149,5 +164,6 @@ public class Parser4 {
         Parser4 parser = new Parser4(allTokens);
         ExprNode1 exprTreeRoot = parser.matchExpression();
         System.out.println(exprTreeRoot.toString());
+        System.out.println(eval(exprTreeRoot));
     }
 }
