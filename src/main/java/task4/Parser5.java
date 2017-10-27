@@ -6,7 +6,7 @@ import java.util.List;
  * Грамматический разбор грамматики
  * выражение ::= слагаемое (('+'|'-') слагаемое)*
  * слагаемое ::= множитель (('*'|'/') множитель)*
- * множитель ::= ('-')? ЧИСЛО | '(' выражение ')'
+ * множитель ::= ('-')? ЧИСЛО | '(' выражение ')' ('!')?
  * с построением дерева разбора.
  */
 public class Parser5 {
@@ -83,26 +83,31 @@ public class Parser5 {
     }
 
     /**
-     * Метод для нетерминального символа 'слагаемое'.
+     * Метод для нетерминального символа 'множитель'.
      *
-     * @return узел дерева, соответствующий слагаемому
+     * @return узел дерева, соответствующий множителю
      */
     private ExprNode1 matchMnozhitel() throws ParseException {
+        // В начале может стоять унарный минус:
         Token minus = match(TokenType.SUB);
         Token number = match(TokenType.NUMBER);
         ExprNode1 result;
         if (number != null) {
+            // Если это ЧИСЛО, то результат - узел для числа:
             result = new ExprNode1(number);
         } else if (match(TokenType.LPAR) != null) {
+            // Если это открывающая скобка, то вызываем разбор выражения в скобках:
             ExprNode1 nested = matchExpression();
             if (match(TokenType.RPAR) == null) {
                 error("Missing ')'");
             }
             result = nested;
         } else {
+            // Иначе ошибка - других вариантов кроме числа и скобки быть не может:
             error("Number or '(' expected");
             return null;
         }
+        // В конце может стоять факториал:
         Token factorial = match(TokenType.EXCLAM);
         if (factorial != null) {
             result = new ExprNode1(null, factorial, result);
@@ -114,15 +119,15 @@ public class Parser5 {
     }
 
     private ExprNode1 matchSlagaemoe() throws ParseException {
-        // В начале должно быть слагаемое:
+        // В начале должен быть множитель:
         ExprNode1 leftNode = matchMnozhitel();
         while (true) {
             // Пока есть символ '*' или '/'...
             Token op = matchAny(TokenType.MUL, TokenType.DIV);
             if (op != null) {
-                // Требуем после плюса/минуса снова слагаемое:
+                // Требуем после умножения/деления снова множитель:
                 ExprNode1 rightNode = matchMnozhitel();
-                // Из двух слагаемых формируем дерево с двумя поддеревьями:
+                // Из двух множителей формируем дерево с двумя поддеревьями:
                 leftNode = new ExprNode1(leftNode, op, rightNode);
             } else {
                 break;
