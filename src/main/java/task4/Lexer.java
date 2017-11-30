@@ -1,9 +1,6 @@
 package task4;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -57,7 +54,7 @@ public class Lexer {
         return new Token(TokenType.NUMBER, numberText, index, matched);
     }
 
-    private final Map<String, TokenType> SYMBOL_MAP = new HashMap<>();
+    private final Map<String, TokenType> SYMBOL_MAP = new TreeMap<>(Comparator.reverseOrder());
 
     {
         SYMBOL_MAP.put("+", TokenType.ADD);
